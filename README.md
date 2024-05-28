@@ -8,7 +8,9 @@
 ## installation guide
 
 ```
-bun init
+git clone https://github.com/kavinda-100/student-management-web-app.git
+bun run start - for start app
+bun run dev - for start the app in development mode
 ```
 
 
