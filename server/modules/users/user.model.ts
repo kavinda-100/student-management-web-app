@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import type { ZodUserType } from "../../zod/schema";
+import type { ZodUserType } from "../../zod/moduleSchema";
 import bcrypt from "bcryptjs";
 
 const UserSchema = new mongoose.Schema<ZodUserType>(
@@ -40,6 +40,18 @@ const UserSchema = new mongoose.Schema<ZodUserType>(
       maxlength: 10,
       required: true,
     },
+    isEmailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerifyToken: {
+      type: String,
+      required: false
+    },
+    passwordResetToken: {
+      type: String,
+      required: false
+    }
   },
   { timestamps: true }
 );

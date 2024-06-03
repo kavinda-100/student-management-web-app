@@ -1,9 +1,12 @@
 import { comparePassword, jwtSign } from "../../middlewares/token";
-import { ZodUserSchema, ZodLoginSchema } from "../../zod/schema";
-import type { ZodLoginType, ZodUserType } from "../../zod/schema";
+import { ZodLoginSchema } from "../../zod/inputValidateSchema";
+import type { ZodUserType } from "../../zod/moduleSchema";
+import { ZodUserSchema } from "../../zod/moduleSchema";
+import type { ZodLoginType } from "../../zod/inputValidateSchema";
 import UserModel from "../users/user.model";
 import type { NextFunction, Request, Response } from "express";
 import { ZodCustomErrorMessages } from "../../utils";
+import type { JwtPayloadType } from "../../types";
 
 // register a new user
 export const registerUser = async (req: Request<{},{},ZodUserType>, res: Response, next: NextFunction) => {
@@ -115,3 +118,45 @@ export const logoutUser = async (req: Request, res: Response) => {
     // send the message
     res.status(200).json({ message: "Logged out successfully" });
 }
+
+// request body for verify email
+type verifyEmailRequestBody = & JwtPayloadType &{
+    token: string;
+}
+// verify email
+export const verifyEmail = async (
+  req: Request<{}, {}, verifyEmailRequestBody>,
+  res: Response,
+  next: NextFunction
+) => {
+  // get the token from the request body
+  const { token, _id} = req.body;
+  // check if the token exists
+  if (!token) {
+    return res.status(400).json({ message: "Email verify token is required" });
+  }
+  // check if the user exists
+  const user: ZodUserType | null = await UserModel.findById(_id);
+  // if the user not exists, send the error message
+  if (!user) {
+    return res.status(400).json({ message: "User not found" });
+  }
+  // check if the user already verified the email
+  if (user.isEmailVerified) {
+    return res.status(400).json({ message: "Email already verified" });
+  }
+  // check if the token is correct/same
+  if (token !== user.emailVerifyToken) {
+    return res.status(400).json({ message: "Invalid token" });
+  }
+  // if the token is correct, update the user to email verified
+  try {
+    await UserModel.findByIdAndUpdate(user._id, {
+      isEmailVerified: true,
+    });
+    // send the message
+    res.status(200).json({ message: "Email verified successfully" });
+  } catch (error) {
+    next(error);
+  }
+};

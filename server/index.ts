@@ -6,10 +6,13 @@ declare module "bun" {
     PORT: string;
     MONGO_URI: string;
     JWT_SECRET: string;
+    DOMAIN_NAME: string;
+    MY_EMAIL: string;
+    MY_EMAIL_PASSWORD: string;
   }
 }
 
-const PORT = process.env.PORT || Bun.env.PORT || 5001;
+const PORT = process.env.PORT || Bun.env.PORT || 5000;
 
 // connect to the database
 connectToDB()

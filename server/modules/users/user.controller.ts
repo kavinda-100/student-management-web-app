@@ -2,11 +2,11 @@ import type { Request, Response, NextFunction } from "express";
 import {
   ZodUserDetailsUpdateSchema,
   ZodUserRoleUpdateSchema,
-} from "../../zod/schema";
+} from "../../zod/inputValidateSchema";
 import type {
   ZodUserDetailsUpdateType,
   ZodUserRoleUpdateType,
-} from "../../zod/schema";
+} from "../../zod/inputValidateSchema";
 import UserModel from "./user.model";
 import { ZodCustomErrorMessages } from "../../utils";
 

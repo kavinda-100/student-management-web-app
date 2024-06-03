@@ -1,4 +1,4 @@
-import type { ZodRoleType } from "../zod/schema";
+import type { ZodRoleType } from "../zod/moduleSchema";
 
 export type MessageResponse = {
   message: string;

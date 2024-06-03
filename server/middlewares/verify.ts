@@ -1,7 +1,7 @@
 import type { Response, Request, NextFunction } from 'express';
 import { jwtVerify } from './token';
 import type { JwtPayloadType } from '../types';
-import type { ZodRoleType } from '../zod/schema';
+import type { ZodRoleType } from '../zod/moduleSchema';
 
 // verify the request contain the token in cookies
 export const verifyToken = (req: Request, res: Response, next: NextFunction) => {
