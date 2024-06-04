@@ -1,42 +1,50 @@
 import * as React from "react";
 import {
   Body,
-  Button,
   Container,
   Head,
+  Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
   Text,
 } from "@react-email/components";
+import type { ZodRoleType } from "../zod/moduleSchema";
 
 type EmailProps = {
-  token: string;
   name: string;
+  password: string;
+  email: string;
+  role: ZodRoleType
 };
 
 const DOMAIN = Bun.env.DOMAIN_NAME || process.env.DOMAIN_NAME;
 
-const VerifyEmail = ({ token, name }: EmailProps) => {
+const UserCredentialsEmail = ({ name, password, email, role }: EmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Verify your email address</Preview>
+      <Preview>Your user credentials</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section>
             <Text style={text}>Hi {name},</Text>
             <Text style={text}>
-             verify your email address to secure your account and we will use this email to send you notifications, updates, and other important information.
+              These are your login credentials for your new account
             </Text>
-            <Button
-              style={button}
-              href={`${DOMAIN}/verify-email?token=${token}`}
-            >
-              Verify Now
-            </Button>
+            <Text style={text}>Your Name: {name}</Text>
+            <Text style={text}>Your Email: {email}</Text>
+            <Text style={text}>Your Password: {password}</Text>
+            <Text style={text}>Your Role: {role}</Text>
+            <Link style={button} href={`${DOMAIN}/login`}>
+              Login
+            </Link>
+            <Hr />
+            <Text style={text}>
+              please change your password as soon as you sign in to your account. for secure your account from third party access.
+            </Text>
+            <Hr />
             <Text style={text}>
               To keep your account secure, please don&apos;t forward this email
               to anyone. See our Help Center for{" "}
@@ -89,5 +97,4 @@ const anchor = {
   textDecoration: "underline",
 };
 
-
-export default VerifyEmail;
+export default UserCredentialsEmail;

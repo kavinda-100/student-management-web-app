@@ -1,5 +1,5 @@
 import express from "express";
-import { loginUser, registerUser, logoutUser, verifyEmail } from "./auth.controllers";
+import { loginUser, registerUser, logoutUser, verifyEmail, askEmailVerification } from "./auth.controllers";
 import { verifyToken, verifyRoles } from "../../middlewares/verify";
 
 const router = express.Router();
@@ -16,6 +16,12 @@ router.get(
   verifyToken,
   verifyRoles(["admin", "superadmin", "user"]),
   logoutUser
+);
+router.post(
+  "/ask-email-verification",
+  verifyToken,
+  verifyRoles(["admin", "superadmin", "user"]),
+  askEmailVerification
 );
 router.post(
   "/verify-email",

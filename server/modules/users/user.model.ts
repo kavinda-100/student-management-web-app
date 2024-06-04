@@ -48,8 +48,8 @@ const UserSchema = new mongoose.Schema<ZodUserType>(
       type: String,
       required: false
     },
-    passwordResetToken: {
-      type: String,
+    passwordResetOPT: {
+      type: Number,
       required: false
     }
   },

@@ -4,8 +4,8 @@ import {
   Button,
   Container,
   Head,
+  Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -13,30 +13,29 @@ import {
 } from "@react-email/components";
 
 type EmailProps = {
-  token: string;
   name: string;
+  OPT: number;
 };
 
 const DOMAIN = Bun.env.DOMAIN_NAME || process.env.DOMAIN_NAME;
 
-const VerifyEmail = ({ token, name }: EmailProps) => {
+const PasswordOPTEmail = ({ name, OPT }: EmailProps) => {
   return (
     <Html>
       <Head />
-      <Preview>Verify your email address</Preview>
+      <Preview>OPT for your password reset</Preview>
       <Body style={main}>
         <Container style={container}>
           <Section>
             <Text style={text}>Hi {name},</Text>
             <Text style={text}>
-             verify your email address to secure your account and we will use this email to send you notifications, updates, and other important information.
+                We received a request to change your password for your
+                account. Your One Time (OTP) is:{" "}{OPT}
             </Text>
-            <Button
-              style={button}
-              href={`${DOMAIN}/verify-email?token=${token}`}
-            >
-              Verify Now
-            </Button>
+            <Text style={text}>
+              Please enter this OPT to change your password.
+            </Text>
+            <Hr />
             <Text style={text}>
               To keep your account secure, please don&apos;t forward this email
               to anyone. See our Help Center for{" "}
@@ -89,5 +88,4 @@ const anchor = {
   textDecoration: "underline",
 };
 
-
-export default VerifyEmail;
+export default PasswordOPTEmail;

@@ -60,7 +60,7 @@ export const ZodUserSchema = z.object({
     }),
     emailVerifyToken: z.string().optional(),
     isEmailVerified: z.boolean().optional(),
-    passwordResetToken: z.string().optional(),
+    passwordResetOPT: z.number().optional(),
     createdAt: z.date().optional(),
     updatedAt: z.date().optional(),
 });
