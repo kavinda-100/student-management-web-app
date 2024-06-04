@@ -1,8 +1,8 @@
 import { comparePassword, jwtSign } from "../../middlewares/token";
-import { ZodLoginSchema } from "../../zod/inputValidateSchema";
+import { ZodEmailSchema, ZodLoginSchema, ZodPasswordResetRequestBodySchema, ZodVerifyEmailRequestBodySchema } from "../../zod/inputValidateSchema";
 import type { ZodUserType } from "../../zod/moduleSchema";
 import { ZodUserSchema } from "../../zod/moduleSchema";
-import type { ZodLoginType } from "../../zod/inputValidateSchema";
+import type { ZodEmailType, ZodLoginType, ZodPasswordResetRequestBodyType, ZodVerifyEmailRequestBodyType } from "../../zod/inputValidateSchema";
 import UserModel from "../users/user.model";
 import type { NextFunction, Request, Response } from "express";
 import {
@@ -12,6 +12,7 @@ import {
 } from "../../utils";
 import type { JwtPayloadType } from "../../types";
 import {
+  sendOTPEmail,
   sendUserCredentialsEmail,
   sendVerificationEmail,
 } from "../../utils/email.utils";
@@ -156,19 +157,24 @@ export const logoutUser = async (req: Request, res: Response) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-type askEmailVerificationRequestBody = JwtPayloadType & {
-  email: string;
-}
+
 // request for email verification
 export const askEmailVerification = async (
-  req: Request<{}, {}, askEmailVerificationRequestBody>,
+  req: Request<{}, {}, ZodEmailType>,
   res: Response,
   next: NextFunction
 ) => {
-  const { _id, email } = req.body;
+  const veryFyEmail = ZodEmailSchema.safeParse(req.body);
+  // if the user data is not valid, send the error message
+  if (!veryFyEmail.success) {
+    const errorMessages = ZodCustomErrorMessages(veryFyEmail.error.errors);
+    return res.status(400).json({ message: errorMessages });
+  }
   try {
     // check if the user exists
-    const user: ZodUserType | null = await UserModel.findOne({email});
+    const user: ZodUserType | null = await UserModel.findOne({
+      email: veryFyEmail.data.email,
+    });
     // if the user not exists, send the error message
     if (!user) {
       return res.status(400).json({ message: "User not found" });
@@ -209,53 +215,163 @@ export const askEmailVerification = async (
   }
 };
 
-// request body for verify email
-type verifyEmailRequestBody = JwtPayloadType & {
-  token: string;
-  email: string;
-};
 // verify email
 export const verifyEmail = async (
-  req: Request<{}, {}, verifyEmailRequestBody>,
+  req: Request<{}, {}, ZodVerifyEmailRequestBodyType>,
   res: Response,
   next: NextFunction
 ) => {
   // get the token from the request body
-  const { token, _id, email } = req.body;
-  // check if the token exists
-  if (!token) {
-    return res.status(400).json({ message: "Email verify token is required" });
+   const veryFyEmailRequestBody = ZodVerifyEmailRequestBodySchema.safeParse(
+     req.body
+   );
+   // if the user data is not valid, send the error message
+   if (!veryFyEmailRequestBody.success) {
+     const errorMessages = ZodCustomErrorMessages(
+       veryFyEmailRequestBody.error.errors
+     );
+     return res.status(400).json({ message: errorMessages });
+   }
+   try {
+     // check if the user exists
+     const user: ZodUserType | null = await UserModel.findOne({
+       email: veryFyEmailRequestBody.data.email,
+     });
+     // if the user not exists, send the error message
+     if (!user) {
+       return res.status(400).json({ message: "User not found" });
+     }
+     // check if the user already verified the email
+     if (user.isEmailVerified) {
+       return res.status(400).json({ message: "Email already verified" });
+     }
+     // check if the token is correct/same
+     if (veryFyEmailRequestBody.data.token !== user.emailVerifyToken) {
+       return res.status(400).json({ message: "Invalid token" });
+     }
+     // if the token is correct, update the user to email verified
+     const userWithEmailVerified = await UserModel.findByIdAndUpdate(
+       user._id,
+       {
+         isEmailVerified: true,
+         emailVerifyToken: "",
+       },
+       { new: true }
+     );
+     // if isEmailVerified is false, send the error message
+     if (!userWithEmailVerified?.toObject().isEmailVerified) {
+       return res.status(500).json({ message: "Failed to verify email" });
+     }
+     // send the message
+     res.status(200).json({ message: "Email verified successfully" });
+   } catch (error) {
+     next(error);
+   }
+};
+
+
+// ask for password reset
+export const askPasswordReset = async (
+  req: Request<{}, {}, ZodEmailType>,
+  res: Response,
+  next: NextFunction
+) => {
+  const veryFyEmail = ZodEmailSchema.safeParse(req.body);
+  // if the user data is not valid, send the error message
+  if (!veryFyEmail.success) {
+    const errorMessages = ZodCustomErrorMessages(veryFyEmail.error.errors);
+    return res.status(400).json({ message: errorMessages });
   }
   // check if the user exists
-  const user: ZodUserType | null = await UserModel.findOne({email});
+  const user: ZodUserType | null = await UserModel.findOne({ email: veryFyEmail.data.email});
   // if the user not exists, send the error message
   if (!user) {
     return res.status(400).json({ message: "User not found" });
   }
-  // check if the user already verified the email
-  if (user.isEmailVerified) {
-    return res.status(400).json({ message: "Email already verified" });
-  }
-  // check if the token is correct/same
-  if (token !== user.emailVerifyToken) {
-    return res.status(400).json({ message: "Invalid token" });
-  }
-  // if the token is correct, update the user to email verified
   try {
-    const userWithEmailVerified = await UserModel.findByIdAndUpdate(
+    // generate a random number for password reset token
+    const PasswordResetOPT = generateRandomNumber();
+    // update the user with the password reset OPT
+    const userWithPasswordResetOPT: ZodUserType | null =
+      await UserModel.findByIdAndUpdate(
+        user._id,
+        { passwordResetOPT: PasswordResetOPT },
+        { new: true }
+      );
+
+    // if the user not exists, send the error message
+    if (
+      !userWithPasswordResetOPT ||
+      !userWithPasswordResetOPT.passwordResetOPT
+    ) {
+      return res
+        .status(500)
+        .json({ message: "Failed to update password reset OPT" });
+    }
+    // send the password reset OPT to the user email
+    const isEmailSend = await sendOTPEmail({
+      reserverEmail: userWithPasswordResetOPT.email,
+      reserverName: userWithPasswordResetOPT.name,
+      OPT: PasswordResetOPT,
+    });
+    // if the email is not send, send the error message
+    if (!isEmailSend) {
+      return res
+        .status(500)
+        .json({ message: "Email not send please try agin!" });
+    }
+    // send the message
+    res.status(200).json({ message: "Password reset OPT send to your email" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// reset password
+export const resetPassword = async (
+  req: Request<{}, {}, ZodPasswordResetRequestBodyType>,
+  res: Response,
+  next: NextFunction
+) => {
+  // get the token from the request body
+  const resetPasswordRequestBody = ZodPasswordResetRequestBodySchema.safeParse(
+    req.body
+  );
+  // if the user data is not valid, send the error message
+  if (!resetPasswordRequestBody.success) {
+    const errorMessages = ZodCustomErrorMessages(
+      resetPasswordRequestBody.error.errors
+    );
+    return res.status(400).json({ message: errorMessages });
+  }
+  try {
+    // check if the user exists
+    const user: ZodUserType | null = await UserModel.findOne({
+      email: resetPasswordRequestBody.data.email,
+    });
+    // if the user not exists, send the error message
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    // check if the token is correct/same
+    if (resetPasswordRequestBody.data.OPT !== user.passwordResetOPT) {
+      return res.status(400).json({ message: "Invalid OPT" });
+    }
+    // update the user with the new password
+    const userWithNewPassword = await UserModel.findByIdAndUpdate(
       user._id,
       {
-        isEmailVerified: true,
-        emailVerifyToken: "",
+        password: resetPasswordRequestBody.data.password,
+        passwordResetOPT: 0,
       },
       { new: true }
     );
-    // if isEmailVerified is false, send the error message
-    if (!userWithEmailVerified?.toObject().isEmailVerified) {
-      return res.status(500).json({ message: "Failed to verify email" });
+    // if the user not exists, send the error message
+    if (!userWithNewPassword) {
+      return res.status(500).json({ message: "Failed to update password" });
     }
     // send the message
-    res.status(200).json({ message: "Email verified successfully" });
+    res.status(200).json({ message: "Password reset successfully" });
   } catch (error) {
     next(error);
   }

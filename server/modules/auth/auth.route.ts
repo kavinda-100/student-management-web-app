@@ -1,5 +1,13 @@
 import express from "express";
-import { loginUser, registerUser, logoutUser, verifyEmail, askEmailVerification } from "./auth.controllers";
+import {
+  loginUser,
+  registerUser,
+  logoutUser,
+  verifyEmail,
+  askEmailVerification,
+  askPasswordReset,
+  resetPassword,
+} from "./auth.controllers";
 import { verifyToken, verifyRoles } from "../../middlewares/verify";
 
 const router = express.Router();
@@ -28,6 +36,18 @@ router.post(
   verifyToken,
   verifyRoles(["admin", "superadmin", "user"]),
   verifyEmail
+);
+router.post(
+  "/ask-password-reset",
+  verifyToken,
+  verifyRoles(["admin", "superadmin", "user"]),
+  askPasswordReset
+);
+router.post(
+  "/reset-password",
+  verifyToken,
+  verifyRoles(["admin", "superadmin", "user"]),
+  resetPassword
 );
 
 export default router;

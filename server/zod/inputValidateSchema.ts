@@ -1,5 +1,43 @@
 import z from "zod";
 import { ZodRoleEnum } from "./moduleSchema";
+import { password } from "bun";
+
+// email validation schema
+export const ZodEmailSchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .email({ message: "Invalid email address" }),
+});
+export type ZodEmailType = z.infer<typeof ZodEmailSchema>;
+
+// email request body schema
+export const ZodVerifyEmailRequestBodySchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .email({ message: "Invalid email address" }),
+  token: z.string({ required_error: "Token is required" }),
+});
+
+export type ZodVerifyEmailRequestBodyType = z.infer<typeof ZodVerifyEmailRequestBodySchema>;
+
+// password reset request body schema
+export const ZodPasswordResetRequestBodySchema = z.object({
+  email: z
+    .string({ required_error: "Email is required" })
+    .email({ message: "Invalid email address" }),
+  OPT: z
+    .number({ required_error: "OPT is required" })
+    .int({ message: "OPT must be a number" })
+    .positive({ message: "OPT must be a positive number" }),
+  password: z
+    .string({
+      required_error: "Password is required",
+      message: "Password is required",
+    })
+    .min(6, { message: "Password must be at least 6 characters long" }),
+});
+
+export type ZodPasswordResetRequestBodyType = z.infer<typeof ZodPasswordResetRequestBodySchema>;
 
 // login a user schema
 export const ZodLoginSchema = z.object({
