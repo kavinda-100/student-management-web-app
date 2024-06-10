@@ -1,4 +1,5 @@
 import app from "./app";
+import server from "./httpSever";
 import { connectToDB, closeFromDB } from "./db";
 
 declare module "bun" {
@@ -18,7 +19,7 @@ const PORT = process.env.PORT || Bun.env.PORT || 5000;
 connectToDB()
   .then(() => {
     console.log("Connected to the database 🚀");
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is running on http://localhost:${PORT}`);
     });
   })
