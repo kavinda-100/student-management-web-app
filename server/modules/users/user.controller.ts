@@ -9,22 +9,19 @@ import type {
 } from "../../zod/inputValidateSchema";
 import UserModel from "./user.model";
 import { ZodCustomErrorMessages } from "../../utils";
-import { hashPassword } from "../../middlewares/token";
+import type { ZodUserType } from "../../zod/moduleSchema";
 
-// update user details
+// update user details for teacher, admin and superadmin
 export const updateUserDetails = async (
-  req: Request<{ userID: string }, {}, ZodUserDetailsUpdateType>,
+  req: Request<{ id: string }, {}, ZodUserDetailsUpdateType>,
   res: Response,
   next: NextFunction
 ) => {
   // get the userID from the request params
-  const { userID } = req.params;
-
-  let hashedPassword = "";
-  let updatedUserDetails: ZodUserDetailsUpdateType = {};
+  const { id } = req.params;
 
   //check if the userID exists
-  if (!userID) {
+  if (!id) {
     return res.status(400).json({ message: "User ID is required" });
   }
   // verify the request body
@@ -40,43 +37,31 @@ export const updateUserDetails = async (
 
   try {
     // check if the user exists
-    const user = await UserModel.findById(userID);
+    const user: ZodUserType | null = await UserModel.findOne({ _id: id});
+    console.log(user);
     // if the user does not exist, send a 404 status code
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    // check if the user is trying to update the password
-    if (veryFyUserDetails.data.password) {
-      hashedPassword = await hashPassword(veryFyUserDetails.data.password);
-      // update the user details with the new password
-      updatedUserDetails = {
-        _id: user._id,
-        userName: veryFyUserDetails.data.userName || user.userName,
-        name: veryFyUserDetails.data.name || user.name,
-        email: veryFyUserDetails.data.email || user.email,
-        password: hashedPassword,
-        avatar: veryFyUserDetails.data.avatar || user.avatar,
-        phoneNumber: veryFyUserDetails.data.phoneNumber || user.phoneNumber,
-      };
-    } 
-    else {
-      // update the user details without a new password
-      updatedUserDetails = {
-        _id: user._id,
-        userName: veryFyUserDetails.data.userName || user.userName,
-        name: veryFyUserDetails.data.name || user.name,
-        email: veryFyUserDetails.data.email || user.email,
-        password: user.password,
-        avatar: veryFyUserDetails.data.avatar || user.avatar,
-        phoneNumber: veryFyUserDetails.data.phoneNumber || user.phoneNumber,
-      };
-    }
+    // update the user details without a new password
+    const updatedUserDetails: ZodUserType = {
+      _id: user._id,
+      userName: veryFyUserDetails.data.userName || user.userName,
+      name: veryFyUserDetails.data.name || user.name,
+      email: veryFyUserDetails.data.email || user.email,
+      avatar: veryFyUserDetails.data.avatar || user.avatar,
+      phoneNumber: veryFyUserDetails.data.phoneNumber || user.phoneNumber,
+      role: user.role,
+      password: user.password,
+    };
     // save the updated user details
     const newUserDetails = await UserModel.findByIdAndUpdate(
-      userID,
+      id,
       updatedUserDetails,
       { new: true }
-    ).select("-password");
+    ).select(
+      "-password -__v -updatedAt -createdAt -emailVerifyToken -passwordResetOPT"
+    );
     // check if the user details are updated
     if (!newUserDetails) {
       return res.status(500).json({ message: "Failed to update user details" });
@@ -116,7 +101,9 @@ export const updateUserRole = async (
       { email: veryFyUserRole.data.email },
       { role: veryFyUserRole.data.role },
       { new: true }
-    ).select("-password");
+    ).select(
+      "-password -__v -updatedAt -createdAt -emailVerifyToken -passwordResetOPT"
+    );
     // check if the user role is updated
     if (!newUserRole) {
       return res.status(500).json({ message: "Failed to update user role" });

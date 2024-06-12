@@ -385,11 +385,12 @@ export const resetPassword = async (
     if (resetPasswordRequestBody.data.OPT !== user.passwordResetOPT) {
       return res.status(400).json({ message: "Invalid OPT" });
     }
+    const hashedPassword = await hashPassword(resetPasswordRequestBody.data.password);
     // update the user with the new password
     const userWithNewPassword = await UserModel.findByIdAndUpdate(
       user._id,
       {
-        password: resetPasswordRequestBody.data.password,
+        password: hashedPassword,
         passwordResetOPT: 0,
       },
       { new: true }

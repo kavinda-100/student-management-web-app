@@ -62,10 +62,6 @@ export const ZodUserDetailsUpdateSchema = z.object({
   userName: z.string().optional(),
   name: z.string().optional(),
   email: z.string().email({ message: "Invalid email address" }).optional(),
-  password: z
-    .string()
-    .min(6, { message: "Password must be at least 6 characters long" })
-    .optional(),
   avatar: z.string().url({ message: "Invalid URL" }).optional(),
   phoneNumber: z
     .string()

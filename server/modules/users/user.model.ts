@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema<ZodUserType>(
     role: {
       type: String,
       required: true,
-      enum: ["student", "Teacher", "admin", "superadmin"],
+      enum: ["Teacher", "admin", "superadmin"],
     },
     avatar: {
       type: String,
