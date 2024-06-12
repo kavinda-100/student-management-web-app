@@ -15,6 +15,12 @@ export const jwtVerify = (token: string): jwt.JwtPayload | string => {
   return jwt.verify(token, secret);
 };
 
+//hash password
+export const hashPassword = async (password: string): Promise<string> => {
+  const sault = await bcrypt.genSalt(10);
+  return await bcrypt.hash(password, sault);
+};
+
 //compare password for login
 export const comparePassword = async (
   password: string,

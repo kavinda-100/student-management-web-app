@@ -9,6 +9,7 @@ import type {
 } from "../../zod/inputValidateSchema";
 import UserModel from "./user.model";
 import { ZodCustomErrorMessages } from "../../utils";
+import { hashPassword } from "../../middlewares/token";
 
 // update user details
 export const updateUserDetails = async (
@@ -18,6 +19,10 @@ export const updateUserDetails = async (
 ) => {
   // get the userID from the request params
   const { userID } = req.params;
+
+  let hashedPassword = "";
+  let updatedUserDetails: ZodUserDetailsUpdateType = {};
+
   //check if the userID exists
   if (!userID) {
     return res.status(400).json({ message: "User ID is required" });
@@ -40,22 +45,38 @@ export const updateUserDetails = async (
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    // update the user details
-    const updatedUserDetails: ZodUserDetailsUpdateType = {
-      _id: user._id,
-      userName: veryFyUserDetails.data.userName || user.userName,
-      name: veryFyUserDetails.data.name || user.name,
-      email: veryFyUserDetails.data.email || user.email,
-      password: veryFyUserDetails.data.password || user.password,
-      avatar: veryFyUserDetails.data.avatar || user.avatar,
-      phoneNumber: veryFyUserDetails.data.phoneNumber || user.phoneNumber,
-    };
+    // check if the user is trying to update the password
+    if (veryFyUserDetails.data.password) {
+      hashedPassword = await hashPassword(veryFyUserDetails.data.password);
+      // update the user details with the new password
+      updatedUserDetails = {
+        _id: user._id,
+        userName: veryFyUserDetails.data.userName || user.userName,
+        name: veryFyUserDetails.data.name || user.name,
+        email: veryFyUserDetails.data.email || user.email,
+        password: hashedPassword,
+        avatar: veryFyUserDetails.data.avatar || user.avatar,
+        phoneNumber: veryFyUserDetails.data.phoneNumber || user.phoneNumber,
+      };
+    } 
+    else {
+      // update the user details without a new password
+      updatedUserDetails = {
+        _id: user._id,
+        userName: veryFyUserDetails.data.userName || user.userName,
+        name: veryFyUserDetails.data.name || user.name,
+        email: veryFyUserDetails.data.email || user.email,
+        password: user.password,
+        avatar: veryFyUserDetails.data.avatar || user.avatar,
+        phoneNumber: veryFyUserDetails.data.phoneNumber || user.phoneNumber,
+      };
+    }
     // save the updated user details
     const newUserDetails = await UserModel.findByIdAndUpdate(
       userID,
       updatedUserDetails,
       { new: true }
-    );
+    ).select("-password");
     // check if the user details are updated
     if (!newUserDetails) {
       return res.status(500).json({ message: "Failed to update user details" });
@@ -84,7 +105,7 @@ export const updateUserRole = async (
   try {
     //check if the user exists and the role is not superadmin
     const user = await UserModel.findOne({
-      email: veryFyUserRole.data.email
+      email: veryFyUserRole.data.email,
     });
     // if the user does not exist, send a 404 status code
     if (!user) {
@@ -95,7 +116,7 @@ export const updateUserRole = async (
       { email: veryFyUserRole.data.email },
       { role: veryFyUserRole.data.role },
       { new: true }
-    );
+    ).select("-password");
     // check if the user role is updated
     if (!newUserRole) {
       return res.status(500).json({ message: "Failed to update user role" });

@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema<ZodUserType>(
     role: {
       type: String,
       required: true,
-      enum: ["user", "admin", "superadmin"],
+      enum: ["student", "Teacher", "admin", "superadmin"],
     },
     avatar: {
       type: String,
@@ -46,29 +46,29 @@ const UserSchema = new mongoose.Schema<ZodUserType>(
     },
     emailVerifyToken: {
       type: String,
-      required: false
+      required: false,
     },
     passwordResetOPT: {
       type: Number,
-      required: false
-    }
+      required: false,
+    },
   },
   { timestamps: true }
 );
 
-// Hash the password before saving the user model
-UserSchema.pre("save", async function (next) {
-  if (!this.isModified("password")) {
-    next();
-  }
-  try {
-    const salt = await bcrypt.genSalt(10);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error: any) {
-    next(error);
-  }
-});
+// // Hash the password before saving the user model
+// UserSchema.pre("save", async function (next) {
+//   if (!this.isModified("password")) {
+//     next();
+//   }
+//   try {
+//     const salt = await bcrypt.genSalt(10);
+//     this.password = await bcrypt.hash(this.password, salt);
+//     next();
+//   } catch (error: any) {
+//     next(error);
+//   }
+// });
 
 const UserModel = mongoose.model<ZodUserType>("User", UserSchema);
 

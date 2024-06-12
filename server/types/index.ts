@@ -1,4 +1,10 @@
 import type { ZodRoleType } from "../zod/moduleSchema";
+import type { Request } from "express";
+
+export type GenericRequestBodyType<T> = {
+  jwtPayload: JwtPayloadType;
+  body: T;
+};
 
 export type MessageResponse = {
   message: string;

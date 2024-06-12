@@ -22,31 +22,31 @@ router.post(
 router.get(
   "/logout",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "user"]),
+  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
   logoutUser
 );
 router.post(
   "/ask-email-verification",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "user"]),
+  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
   askEmailVerification
 );
 router.post(
   "/verify-email",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "user"]),
+  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
   verifyEmail
 );
 router.post(
   "/ask-password-reset",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "user"]),
+  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
   askPasswordReset
 );
 router.post(
   "/reset-password",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "user"]),
+  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
   resetPassword
 );
 

@@ -23,6 +23,7 @@ export const verifyToken = (req: Request, res: Response, next: NextFunction) => 
     next();
 }
 
+// verify user privileges by role
 export const verifyRoles = (roles: ZodRoleType[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     // get the token from the cookies

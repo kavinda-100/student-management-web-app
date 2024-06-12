@@ -1,4 +1,4 @@
-import { comparePassword, jwtSign } from "../../middlewares/token";
+import { comparePassword, hashPassword, jwtSign } from "../../middlewares/token";
 import { ZodEmailSchema, ZodLoginSchema, ZodPasswordResetRequestBodySchema, ZodVerifyEmailRequestBodySchema } from "../../zod/inputValidateSchema";
 import type { ZodUserType } from "../../zod/moduleSchema";
 import { ZodUserSchema } from "../../zod/moduleSchema";
@@ -10,14 +10,14 @@ import {
   generateRandomNumber,
   generateRandomString,
 } from "../../utils";
-import type { JwtPayloadType } from "../../types";
+import type { GenericRequestBodyType, JwtPayloadType } from "../../types";
 import {
   sendOTPEmail,
   sendUserCredentialsEmail,
   sendVerificationEmail,
 } from "../../utils/email.utils";
 
-// register a new user
+// register a new user------------------------------------------------------------------
 export const registerUser = async (
   req: Request<{}, {}, ZodUserType>,
   res: Response,
@@ -37,6 +37,7 @@ export const registerUser = async (
   const userExist: ZodUserType | null = await UserModel.findOne({
     email: veryFyUser.data.email,
   });
+  // if the user already exists, send the error message
   if (userExist) {
     return res
       .status(400)
@@ -46,9 +47,12 @@ export const registerUser = async (
   }
 
   try {
+    // hash the password
+    const hashedPassword = await hashPassword(veryFyUser.data.password);
     // if the user not exit and user data is valid, create a new user
     const newUser: ZodUserType = {
       ...veryFyUser.data,
+      password: hashedPassword,
       isEmailVerified: false,
     };
     // create a new user
@@ -158,12 +162,14 @@ export const logoutUser = async (req: Request, res: Response) => {
 };
 
 
-// request for email verification
+// request for email verification--------------------------------------------------------
 export const askEmailVerification = async (
-  req: Request<{}, {}, ZodEmailType>,
+  req: Request<{}, {}, GenericRequestBodyType<ZodEmailType>>,
   res: Response,
   next: NextFunction
 ) => {
+  const {jwtPayload } = req.body;
+  // console.log({ body: req.body });
   const veryFyEmail = ZodEmailSchema.safeParse(req.body);
   // if the user data is not valid, send the error message
   if (!veryFyEmail.success) {
@@ -178,6 +184,10 @@ export const askEmailVerification = async (
     // if the user not exists, send the error message
     if (!user) {
       return res.status(400).json({ message: "User not found" });
+    }
+    // check if the user is not the same user by role
+    if (user.role !== jwtPayload.role) {
+      return res.status(401).json({ message: "Unauthorized access" });
     }
     // check if the user already verified the email
     if (user.isEmailVerified) {
@@ -215,80 +225,93 @@ export const askEmailVerification = async (
   }
 };
 
-// verify email
+// verify email-------------------------------------------------------------------------------
 export const verifyEmail = async (
-  req: Request<{}, {}, ZodVerifyEmailRequestBodyType>,
+  req: Request<{}, {}, GenericRequestBodyType<ZodVerifyEmailRequestBodyType>>,
   res: Response,
   next: NextFunction
 ) => {
+  const {jwtPayload } = req.body;
   // get the token from the request body
-   const veryFyEmailRequestBody = ZodVerifyEmailRequestBodySchema.safeParse(
-     req.body
-   );
-   // if the user data is not valid, send the error message
-   if (!veryFyEmailRequestBody.success) {
-     const errorMessages = ZodCustomErrorMessages(
-       veryFyEmailRequestBody.error.errors
-     );
-     return res.status(400).json({ message: errorMessages });
-   }
-   try {
-     // check if the user exists
-     const user: ZodUserType | null = await UserModel.findOne({
-       email: veryFyEmailRequestBody.data.email,
-     });
-     // if the user not exists, send the error message
-     if (!user) {
-       return res.status(400).json({ message: "User not found" });
-     }
-     // check if the user already verified the email
-     if (user.isEmailVerified) {
-       return res.status(400).json({ message: "Email already verified" });
-     }
-     // check if the token is correct/same
-     if (veryFyEmailRequestBody.data.token !== user.emailVerifyToken) {
-       return res.status(400).json({ message: "Invalid token" });
-     }
-     // if the token is correct, update the user to email verified
-     const userWithEmailVerified = await UserModel.findByIdAndUpdate(
-       user._id,
-       {
-         isEmailVerified: true,
-         emailVerifyToken: "",
-       },
-       { new: true }
-     );
-     // if isEmailVerified is false, send the error message
-     if (!userWithEmailVerified?.toObject().isEmailVerified) {
-       return res.status(500).json({ message: "Failed to verify email" });
-     }
-     // send the message
-     res.status(200).json({ message: "Email verified successfully" });
-   } catch (error) {
-     next(error);
-   }
+  const veryFyEmailRequestBody = ZodVerifyEmailRequestBodySchema.safeParse(
+    req.body
+  );
+  // if the user data is not valid, send the error message
+  if (!veryFyEmailRequestBody.success) {
+    const errorMessages = ZodCustomErrorMessages(
+      veryFyEmailRequestBody.error.errors
+    );
+    return res.status(400).json({ message: errorMessages });
+  }
+  try {
+    // check if the user exists
+    const user: ZodUserType | null = await UserModel.findOne({
+      email: veryFyEmailRequestBody.data.email,
+    });
+    // if the user not exists, send the error message
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    } 
+    // check if the user is not the same user by role
+    if (user.role !== jwtPayload.role) {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
+    // check if the user already verified the email
+    if (user.isEmailVerified) {
+      return res.status(400).json({ message: "Email already verified" });
+    }
+    // check if the token is correct/same
+    if (veryFyEmailRequestBody.data.token !== user.emailVerifyToken) {
+      return res.status(400).json({ message: "Invalid token" });
+    }
+    // if the token is correct, update the user to email verified
+    const userWithEmailVerified = await UserModel.findByIdAndUpdate(
+      user._id,
+      {
+        isEmailVerified: true,
+        emailVerifyToken: "",
+      },
+      { new: true }
+    );
+    // if isEmailVerified is false, send the error message
+    if (!userWithEmailVerified?.toObject().isEmailVerified) {
+      return res.status(500).json({ message: "Failed to verify email" });
+    }
+    // send the message
+    res.status(200).json({ message: "Email verified successfully" });
+  } catch (error) {
+    next(error);
+  }
 };
 
 
-// ask for password reset
+// ask for password reset----------------------------------------------------------------------
 export const askPasswordReset = async (
-  req: Request<{}, {}, ZodEmailType>,
+  req: Request<{}, {}, GenericRequestBodyType<ZodEmailType>>,
   res: Response,
   next: NextFunction
 ) => {
+  const {jwtPayload } = req.body;
   const veryFyEmail = ZodEmailSchema.safeParse(req.body);
   // if the user data is not valid, send the error message
   if (!veryFyEmail.success) {
     const errorMessages = ZodCustomErrorMessages(veryFyEmail.error.errors);
     return res.status(400).json({ message: errorMessages });
   }
-  // check if the user exists
-  const user: ZodUserType | null = await UserModel.findOne({ email: veryFyEmail.data.email});
-  // if the user not exists, send the error message
-  if (!user) {
-    return res.status(400).json({ message: "User not found" });
-  }
+
   try {
+    // check if the user exists
+    const user: ZodUserType | null = await UserModel.findOne({
+      email: veryFyEmail.data.email,
+    });
+    // if the user not exists, send the error message
+    if (!user) {
+      return res.status(400).json({ message: "User not found" });
+    }
+    // check if the user is not the same user by role
+    if (user.role !== jwtPayload.role) {
+      return res.status(401).json({ message: "Unauthorized access" });
+    }
     // generate a random number for password reset token
     const PasswordResetOPT = generateRandomNumber();
     // update the user with the password reset OPT
@@ -327,12 +350,13 @@ export const askPasswordReset = async (
   }
 };
 
-// reset password
+// reset password ------------------------------------------------------------------------------
 export const resetPassword = async (
-  req: Request<{}, {}, ZodPasswordResetRequestBodyType>,
+  req: Request<{}, {}, GenericRequestBodyType<ZodPasswordResetRequestBodyType>>,
   res: Response,
   next: NextFunction
 ) => {
+  const {jwtPayload } = req.body;
   // get the token from the request body
   const resetPasswordRequestBody = ZodPasswordResetRequestBodySchema.safeParse(
     req.body
@@ -352,6 +376,10 @@ export const resetPassword = async (
     // if the user not exists, send the error message
     if (!user) {
       return res.status(400).json({ message: "User not found" });
+    }
+    // check if the user is not the same user by role
+    if (user.role !== jwtPayload.role) {
+      return res.status(401).json({ message: "Unauthorized access" });
     }
     // check if the token is correct/same
     if (resetPasswordRequestBody.data.OPT !== user.passwordResetOPT) {

@@ -1,6 +1,5 @@
 import z from "zod";
 import { ZodRoleEnum } from "./moduleSchema";
-import { password } from "bun";
 
 // email validation schema
 export const ZodEmailSchema = z.object({
