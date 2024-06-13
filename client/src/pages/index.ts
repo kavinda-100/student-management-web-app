@@ -5,6 +5,8 @@ import ResetPassword from "./auth/ResetPassword";
 import ResetPasswordOPT from "./auth/ResetPasswordOPT";
 // dashboard
 import Dashboard from "./dashboard/Dashboard";
+// not found
+import NotFound from "./NotFound";
 
 
 export {
@@ -12,5 +14,6 @@ export {
     LogIn,
     ResetPassword,
     ResetPasswordOPT,
-    Dashboard
+    Dashboard,
+    NotFound
 }

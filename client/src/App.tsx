@@ -1,38 +1,28 @@
 // react router dom imports
 import { BrowserRouter, Routes, Route} from "react-router-dom"
 // pages
-import {Welcome, LogIn, ResetPassword, ResetPasswordOPT, Dashboard} from "@/pages"
+import {Welcome, LogIn, ResetPassword, ResetPasswordOPT, Dashboard, NotFound} from "@/pages"
 // layouts
-import Main from "@/layouts/main"
-//Redux
-import { useAppSelector } from "./store/reduxHooks"
-import { selectUser } from "../src/store/features/userSlice"
+import {Main, PrivateRoute} from "@/layouts"
+
 
 function App() {
-  const user = useAppSelector(selectUser)
 
   return (
     <BrowserRouter>
       <Routes>
         <Route element={<Main />}>
-          // If user not log in show welcome page
-          {user === null && (
-            <>
-              <Route path="/" element={<Welcome />} />
-              <Route path="/login" element={<LogIn />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route
-                path="/reset-password-opt"
-                element={<ResetPasswordOPT />}
-              />
-            </>
-          )}
-          // If user log in show dashboard
-          {user !== null && (
-            <>
-              <Route path="/dashboard" element={<Dashboard />} />
-            </>
-          )}
+          // Public routes
+          <Route path="/" element={<Welcome />} />
+          <Route path="/login" element={<LogIn />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/reset-password-opt" element={<ResetPasswordOPT />} />
+          // Private route
+          <Route element={<PrivateRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            //Not found route
+            <Route path="*" element={<NotFound />} />
+          </Route>
         </Route>
       </Routes>
     </BrowserRouter>
