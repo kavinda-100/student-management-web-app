@@ -7,7 +7,7 @@ import { selectUser } from "@/store/features/userSlice"
 const index = () => {
   const user = useAppSelector(selectUser);
 
-  return (user ? <Outlet /> : <Navigate to="/" />);
+  return (user !== null ? <Outlet /> : <Navigate to="/" />);
 };
 
 export default index;
