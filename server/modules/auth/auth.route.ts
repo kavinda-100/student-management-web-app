@@ -16,37 +16,37 @@ router.post("/login", loginUser);
 router.post(
   "/register",
   verifyToken,
-  verifyRoles(["admin", "superadmin"]),
+  verifyRoles(["admin"]),
   registerUser
 );
 router.get(
   "/logout",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
+  verifyRoles(["admin","teacher", "student"]),
   logoutUser
 );
 router.post(
   "/ask-email-verification",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
+  verifyRoles(["admin","teacher", "student"]),
   askEmailVerification
 );
 router.post(
   "/verify-email",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
+  verifyRoles(["admin","teacher", "student"]),
   verifyEmail
 );
 router.post(
   "/ask-password-reset",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
+  verifyRoles(["admin","teacher", "student"]),
   askPasswordReset
 );
 router.post(
   "/reset-password",
   verifyToken,
-  verifyRoles(["admin", "superadmin", "Teacher", "student"]),
+  verifyRoles(["admin","teacher", "student"]),
   resetPassword
 );
 

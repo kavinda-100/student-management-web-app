@@ -5,9 +5,9 @@ import { verifyRoles, verifyToken } from "../../middlewares/verify";
 const router = express.Router();
 
 // update user details
-router.patch("/update/:id", verifyToken, verifyRoles(["admin", "superadmin", "Teacher"]), updateUserDetails);
+router.patch("/update/:id", verifyToken, verifyRoles(["admin", "teacher"]), updateUserDetails);
 // update user role (user role only can be updated by superadmin)
-router.patch("/update-role", verifyToken, verifyRoles(["superadmin", "admin"]), updateUserRole);
+router.patch("/update-role", verifyToken, verifyRoles(["admin"]), updateUserRole);
 
 
 export default router;

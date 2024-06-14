@@ -1,6 +1,6 @@
 import z from "zod";
 
-export const ZodRoleEnum = z.enum(["student","Teacher", "admin", "superadmin"]);
+export const ZodRoleEnum = z.enum(["student","teacher", "admin"]);
 export type ZodRoleType = z.infer<typeof ZodRoleEnum>;
 export const ZodClassEnum = z.enum([
   "A",
