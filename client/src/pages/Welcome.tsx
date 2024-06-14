@@ -1,22 +1,28 @@
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
+import { LoginDialog } from "@/form/LoginDialog";
+
 
 const Welcome = () => {
   return (
-    <section className="flex flex-col items-center justify-center">
-      <h1 className="text-xl font-bold text-gray-700 md:text-2xl text-pretty dark:text-gray-400">
-        <span className="text-2xl md:text-3xl">Welcome!</span>{" "}
-        Manage your classes, grades, and resources all in one place. Streamline
-        your academic life! Access your schedule, assignments, and announcements
-        with ease.
-      </h1>
+    <section className="grid h-screen place-items-center">
+      <div className="w-full">
+        <div className="items-center justify-center">
+          <h1 className="text-xl font-bold text-center text-gray-700 md:text-2xl text-pretty dark:text-gray-400">
+            <span className="text-2xl md:text-3xl xl:text-4xl">Welcome!</span>{" "}
+            Manage your classes, grades, and resources all in one place. <br />
+          </h1>
+          <h3 className="text-lg font-bold text-center text-gray-700 md:text-xl text-pretty dark:text-gray-400">
+            Streamline your academic life! Access your schedule, assignments,
+            and announcements with ease.
+          </h3>
+        </div>
+
+        {/* login section */}
+        <div className="flex flex-col items-center justify-center w-full gap-5 mt-5 md:flex-row">
+          <LoginDialog role="student" title="student" />
+          <LoginDialog role="teacher" title="Teacher" />
+          <LoginDialog role="admin" title="Administrator" />
+        </div>
+      </div>
     </section>
   );
 };
