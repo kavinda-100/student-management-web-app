@@ -14,20 +14,16 @@ import {
 import { Input } from "@/components/ui/input";
 import { ZodRoleType } from "@/zod";
 import { cn } from "@/lib/utils";
+import { logInFormSchema } from "@/zod/inputValidation";
 
 type Props = {
   role: ZodRoleType;
   className?: string;
 };
 
-const formSchema = z.object({
-  email: z.string().email({ message: "Invalid email address" }),
-  password: z.string().min(6, { message: "Password must be at least 6 characters" }),
-});
-
 export function LoginForm({ role, className }: Props) {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<z.infer<typeof logInFormSchema>>({
+    resolver: zodResolver(logInFormSchema),
     defaultValues: {
       email: "",
       password: "",
@@ -35,11 +31,11 @@ export function LoginForm({ role, className }: Props) {
   });
 
   // 2. Define a submit handler.
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: z.infer<typeof logInFormSchema>) {
     const data = {
-        ...values,
-        role,
-    }
+      ...values,
+      role,
+    };
     console.log(data);
   }
 

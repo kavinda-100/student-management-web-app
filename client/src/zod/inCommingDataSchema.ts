@@ -1,15 +1,5 @@
 import z from 'zod';
 import { ZodRoleEnum } from './index';
-// {
-//     "_id": "664f6881ee320de1d423401a",
-//     "userName": "kavinda10",
-//     "name": "Kavinda",
-//     "email": "superadmin@gmail.com",
-//     "role": "superadmin",
-//     "phoneNumber": "0771234567",
-//     "createdAt": "2024-05-23T16:02:09.803Z",
-//     "updatedAt": "2024-05-23T16:02:09.803Z"
-// }
 
 // user schema (incoming data) for (Teacher, Admin, SuperAdmin)
 export const userSchema = z.object({

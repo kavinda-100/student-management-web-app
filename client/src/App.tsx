@@ -1,7 +1,7 @@
 // react router dom imports
 import { BrowserRouter, Routes, Route} from "react-router-dom"
 // pages
-import {Welcome, LogIn, ResetPassword, ResetPasswordOPT, Dashboard, NotFound} from "@/pages"
+import {Welcome, ResetPassword, ResetPasswordOPT, Dashboard, NotFound} from "@/pages"
 // layouts
 import {Main, PrivateRoute} from "@/layouts"
 // sonner
@@ -19,7 +19,6 @@ function App() {
           <Route element={<Main />}>
             // Public routes
             <Route path="/" element={<Welcome />} />
-            <Route path="/login" element={<LogIn />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/reset-password-opt" element={<ResetPasswordOPT />} />
             // Private route
