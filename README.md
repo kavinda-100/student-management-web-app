@@ -5,9 +5,14 @@
 > [!IMPORTANT]
 > Make sure you install the Bun Js in to your computer. Install Bun v1.1.10
 
+## Bun Js Installation
+### For Linux & macOS
 ```
-powershell -c "irm bun.sh/install.ps1 | iex" - for Windows
-curl -fsSL https://bun.sh/install | bash - for Linux & macOS
+curl -fsSL https://bun.sh/install | bash 
+```
+### For Windows
+```
+powershell -c "irm bun.sh/install.ps1 | iex"
 ```
 
 > [!TIP]
