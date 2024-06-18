@@ -41,6 +41,9 @@ bun run dev
 > for mok user use the following credentials
 > email: admin@gamil.com
 > password: 123456
+> role: admin
+
+
 
 
 
