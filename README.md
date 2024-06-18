@@ -14,11 +14,33 @@ curl -fsSL https://bun.sh/install | bash - for Linux & macOS
 > Refer the [Bun js](https://bun.sh/) documentation for more guide if  needed.
 
 ## installation guide
-
+### clone the repository
 ```
 git clone https://github.com/kavinda-100/student-management-web-app.git
-bun run start - for start app
-bun run dev - for start the app in development mode
 ```
+### install the dependencies for server (in root directory)
+```
+bun install
+```
+### install the dependencies for client (in client directory)
+```
+cd client
+bun install
+```
+### start the server
+```
+bun run dev
+```
+### start the client
+```
+cd client
+bun run dev
+```
+
+> [!NOTE] 
+> for mok user use the following credentials
+> email: admin@gamil.com
+> password: 123456
+
 
 
