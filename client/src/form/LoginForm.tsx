@@ -53,10 +53,14 @@ export function LoginForm({ role, className }: Props) {
             toast.success("Login Success");
             console.log(data);
             setUser(data);
+            // for debugging navigate to dashboard
+            console.log("navigate to dashboard start");
             navigate("/dashboard", {replace: true});
+            console.log("navigated to dashboard end");
+
         })
         .catch((error) => {
-            toast.error(error.message);
+            toast.error(error.data.message);
             console.log(error);
         });
 
