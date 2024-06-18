@@ -9,7 +9,7 @@ type UserType = {
 
 // Initial State
 const initialState: UserType = {
-    user:null,
+    user: JSON.parse(localStorage.getItem("user") || "{}") as UserSchemaType | null,
 };
 
 // Slice
@@ -19,6 +19,8 @@ const userSlice = createSlice({
     reducers: {
         setUser: (state, action: PayloadAction<UserSchemaType>) => {
             state.user = action.payload;
+            // Save user to local storage
+            localStorage.setItem("user", JSON.stringify(action.payload));
         },
         clearUser: (state) => {
             state.user = null;

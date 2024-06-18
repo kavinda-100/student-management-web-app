@@ -28,6 +28,10 @@ type Props = {
 export function LoginForm({ role, className }: Props) {
     // 1. Define a navigate hook.
     const navigate = useNavigate();
+
+    const navigateToDashboard = () => {
+        navigate("/dashboard", {replace: true});
+    }
     // 1. Define a mutation hook.
     const [login, {isLoading}] = useLoginMutation();
 
@@ -55,7 +59,7 @@ export function LoginForm({ role, className }: Props) {
             setUser(data);
             // for debugging navigate to dashboard
             console.log("navigate to dashboard start");
-            navigate("/dashboard", {replace: true});
+            navigateToDashboard();
             console.log("navigated to dashboard end");
 
         })
