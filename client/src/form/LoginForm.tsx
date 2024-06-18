@@ -1,3 +1,4 @@
+import { useNavigate} from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -12,9 +13,12 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner"
 import { ZodRoleType } from "@/zod";
 import { cn } from "@/lib/utils";
 import { logInFormSchema } from "@/zod/inputValidation";
+import {useLoginMutation} from "@/store/api/authApi.ts";
+import { setUser} from "@/store/features/userSlice.ts";
 
 type Props = {
   role: ZodRoleType;
@@ -22,6 +26,12 @@ type Props = {
 };
 
 export function LoginForm({ role, className }: Props) {
+    // 1. Define a navigate hook.
+    const navigate = useNavigate();
+    // 1. Define a mutation hook.
+    const [login, {isLoading}] = useLoginMutation();
+
+    // 2. Define a form hook.
   const form = useForm<z.infer<typeof logInFormSchema>>({
     resolver: zodResolver(logInFormSchema),
     defaultValues: {
@@ -30,13 +40,26 @@ export function LoginForm({ role, className }: Props) {
     },
   });
 
-  // 2. Define a submit handler.
+  // 3. Define a submit handler.
   function onSubmit(values: z.infer<typeof logInFormSchema>) {
     const data = {
       ...values,
       role,
     };
-    console.log(data);
+    // 4. Call the mutation hook.
+    login(data)
+        .unwrap()
+        .then((data) => {
+            toast.success("Login Success");
+            console.log(data);
+            setUser(data);
+            navigate("/dashboard", {replace: true});
+        })
+        .catch((error) => {
+            toast.error(error.message);
+            console.log(error);
+        });
+
   }
 
   return (
@@ -71,7 +94,7 @@ export function LoginForm({ role, className }: Props) {
             </FormItem>
           )}
         />
-        <Button type="submit" className="w-full">Sign In</Button>
+        <Button type="submit" className="w-full" disabled={isLoading}>Sign In</Button>
       </form>
     </Form>
   );

@@ -9,7 +9,7 @@ type UserType = {
 
 // Initial State
 const initialState: UserType = {
-    user: null,
+    user:null,
 };
 
 // Slice

@@ -1,29 +1,30 @@
-import { configureStore, combineReducers } from "@reduxjs/toolkit";
-import storage from "redux-persist/lib/storage";
-import { persistReducer } from "redux-persist";
+import { configureStore } from "@reduxjs/toolkit";
+// import storage from "redux-persist/lib/storage";
+// import { persistReducer } from "redux-persist";
 
 // Import the slice reducers
 import userReducer from "@/store/features/userSlice";
 import { baseApi } from "@/store/api/baseApi";
 
-// persistConfig 
-const persistConfig = {
-  key: "root",
-  version: 1,
-  storage,
-}
-
-// Combine the slice reducers
-const reducers = combineReducers({
-  user: userReducer,
-});
-
-// Create the persisted reducer
-const persistedReducer = persistReducer(persistConfig, reducers);
+// // persistConfig
+// const persistConfig = {
+//   key: "root",
+//   version: 1,
+//   storage,
+// }
+//
+// // Combine the slice reducers
+// const reducers = combineReducers({
+//   user: userReducer,
+//   [baseApi.reducerPath]: baseApi.reducer,
+// });
+//
+// // Create the persisted reducer
+// const persistedReducer = persistReducer(persistConfig, reducers);
 
 export const store = configureStore({
   reducer: {
-    persistedReducer,
+    user: userReducer,
     [baseApi.reducerPath]: baseApi.reducer,
   },
   middleware: (getDefaultMiddleware) =>
